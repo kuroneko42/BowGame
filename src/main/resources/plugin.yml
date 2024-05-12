@@ -1,0 +1,4 @@
+name: BowGame
+version: '${version}'
+main: org.kuroneko42.bowgame.BowGame
+api-version: '1.20'
