@@ -1,83 +1,108 @@
 package org.kuroneko42.bowgame.game;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.kuroneko42.bowgame.items.ItemArrow;
 
 public class GameListener implements Listener {
 
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack handItem = player.getInventory().getItemInMainHand();
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onArrowShooter(EntityShootBowEvent event) {
+        Player player = (Player) event.getEntity();
+        ItemStack leftHandItem = player.getInventory().getItemInOffHand();
 
-        if (handItem.getType() == Material.BOW && event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            ItemStack arrowToUse = null;
-
-            for (ItemStack item : player.getInventory().getContents()) {
-                if (item != null && item.getItemMeta().hasDisplayName()) {
-                    String displayName = item.getItemMeta().getDisplayName();
-
-                    if (displayName.equals("일반 화살")) {
-                        arrowToUse = normalArrow();
-                        break;
-                    } else if (displayName.equals("가로 화살")) {
-                        arrowToUse = horizontalArrow();
-                        break;
-                    } else if (displayName.equals("세로 화살")) {
-                        arrowToUse = verticalArrow();
-                        break;
-                    }
-                }
-            }
-
-            if (arrowToUse != null) {
-                player.launchProjectile(Arrow.class);
-            } else {
-                event.setCancelled(true);
-            }
+        if (leftHandItem.getType() == Material.AIR) {
+            event.setCancelled(true);
+            player.sendMessage("왼손에 화살을 들어주세요");
         }
     }
 
-    public static ItemStack getBow() {
-        ItemStack bowItem = new ItemStack(Material.BOW);
-        ItemMeta itemMeta = bowItem.getItemMeta();
-        itemMeta.setDisplayName("기본 활");
-        bowItem.setItemMeta(itemMeta);
 
-        return bowItem;
-    }
 
-    public static ItemStack normalArrow() {
-        ItemStack normalItem = new ItemStack(Material.ARROW, 30);
-        ItemMeta itemMeta = normalItem.getItemMeta();
-        itemMeta.setDisplayName("일반 화살");
-        normalItem.setItemMeta(itemMeta);
+    @EventHandler (priority = EventPriority.LOWEST)
+    public void onArrowHit(ProjectileHitEvent event) {
 
-        return normalItem;
-    }
+        Player player = (Player) event.getEntity().getShooter();
+        ItemStack leftHand = player.getInventory().getItemInOffHand();
+        ItemMeta meta = leftHand.getItemMeta();
+        Block block = event.getHitBlock();
+        Material material = block.getType();
+        Location loc = block.getLocation();
+        Arrow arrow = (Arrow) event.getEntity();
+        arrow.remove();
 
-    public static ItemStack horizontalArrow() {
-        ItemStack horizontalItem = new ItemStack(Material.ARROW, 10);
-        ItemMeta itemMeta = horizontalItem.getItemMeta();
-        itemMeta.setDisplayName("가로 화살");
-        horizontalItem.setItemMeta(itemMeta);
+        if (!GameManger.distanceCheck(player.getLocation(), loc)) return;
+        if (material != Material.TARGET) return;
 
-        return horizontalItem;
-    }
+        if (ItemArrow.isNormalArrow(leftHand)) {
+            block.setType(Material.AIR);
+        } else if (ItemArrow.isHorizontalArrow(leftHand)) {
+            block.setType(Material.AIR);
+            block.getRelative(1,0,0).setType(Material.AIR);
+            block.getRelative(-1,0,0).setType(Material.AIR);
+        } else if (ItemArrow.isVerticalArrow(leftHand)) {
+            block.setType(Material.AIR);
+            block.getRelative(0,1,0).setType(Material.AIR);
+            block.getRelative(0,-1,0).setType(Material.AIR);
+        }
 
-    public static ItemStack verticalArrow() {
-        ItemStack verticaItem = new ItemStack(Material.ARROW, 10);
-        ItemMeta itemMeta = verticaItem.getItemMeta();
-        itemMeta.setDisplayName("세로 화살");
-        verticaItem.setItemMeta(itemMeta);
 
-        return verticaItem;
+//        if (!GameManger.distanceCheck(player.getLocation(), loc)) return;
+//        if (material != Material.TARGET) return;
+//        if (ItemArrow.isNormalArrow(leftHand)) {
+//            block.setType(Material.AIR);
+//        } else if (ItemArrow.isHorizontalArrow(leftHand)) {
+//            block.setType(Material.AIR);
+//            block.getRelative(1,0,0).setType(Material.AIR);
+//            block.getRelative(-1,0,0).setType(Material.AIR);
+//        } else if (ItemArrow.isVerticalArrow(leftHand)) {
+//            block.setType(Material.AIR);
+//            block.getRelative(0,1,0).setType(Material.AIR);
+//            block.getRelative(0,-1,0).setType(Material.AIR);
+//        }
+
+
+
+//        if (event.getEntity() instanceof Arrow) {
+//            Arrow arrow = (Arrow) event.getEntity();
+//            ProjectileSource shooter = arrow.getShooter();
+//
+//            if (shooter instanceof Player) {
+//                Player player = (Player) shooter;
+//                ItemStack arrowItem = player.getInventory().getItemInOffHand();
+//
+//                if (event.getHitBlock() != null && event.getHitBlock().getType() == Material.TARGET) {
+//                    Block targetBlock = event.getHitBlock();
+//                    String arrowName = arrowItem.getItemMeta().getDisplayName();
+//
+//                    switch (arrowName) {
+//                        case "일반 화살":
+//                            targetBlock.setType(Material.AIR);
+//                            break;
+//                        case "가로 화살":
+//                            targetBlock.setType(Material.AIR);
+//                            targetBlock.getRelative(1,0,0).setType(Material.AIR);
+//                            targetBlock.getRelative(-1,0,0).setType(Material.AIR);
+//                            break;
+//                        case "세로 화살":
+//                            targetBlock.setType(Material.AIR);
+//                            targetBlock.getRelative(0,1,0).setType(Material.AIR);
+//                            targetBlock.getRelative(0,-1,0).setType(Material.AIR);
+//                            break;
+//                    }
+//                    arrow.remove();
+//                }
+//            }
+//        }
     }
 }

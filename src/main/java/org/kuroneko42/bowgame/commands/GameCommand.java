@@ -1,23 +1,18 @@
 package org.kuroneko42.bowgame.commands;
 
 import com.google.common.collect.Lists;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.kuroneko42.bowgame.game.GameListener;
+import org.kuroneko42.bowgame.items.ItemArrow;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.locks.Lock;
 
 public class GameCommand extends BukkitCommand {
     public GameCommand() {
@@ -37,9 +32,10 @@ public class GameCommand extends BukkitCommand {
         }
         String args0 = args[0];
         if (args0.equals("start")) {
+            ItemStack bow = new ItemStack(Material.BOW);
             addTarget(player);
-            player.getInventory().addItem(randomArrow());
-            player.getInventory().addItem(GameListener.getBow());
+            player.getInventory().addItem(getArrow());
+            player.getInventory().addItem(bow);
             player.sendMessage("게임 시작");
             return false;
         }
@@ -82,18 +78,11 @@ public class GameCommand extends BukkitCommand {
         TargetLoc.clear();
     }
 
-    private ItemStack randomArrow() {
-        Random random = new Random();
-        int choice = random.nextInt(3);
-
-        switch (choice) {
-            case 0:
-                return GameListener.normalArrow();
-            case 1:
-                return GameListener.horizontalArrow();
-            case 2:
-                return GameListener.verticalArrow();
-        }
-        return randomArrow();
+    private ItemStack[] getArrow() {
+        ItemStack[] arrows = new ItemStack[3];
+        arrows[0] = ItemArrow.createNormalArrow();
+        arrows[1] = ItemArrow.createHorizontalArrow();
+        arrows[2] = ItemArrow.createVerticalArrow();
+        return arrows;
     }
 }
