@@ -49,6 +49,6 @@ processResources {
 
     jar {
         archiveFileName = project.name + ".jar"
-        destinationDirectory.set(file("C:\\Users\\USER\\Desktop\\paper-1.20.1\\plugins"))
+        destinationDirectory.set(file("C:\\Users\\Dawn\\Desktop\\paper\\plugins"))
     }
 }
